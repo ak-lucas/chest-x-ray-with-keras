@@ -10,9 +10,12 @@ class XRay:
   def __init__(self):
     pass
 
-  def load_images(self, folder_p, folder_n, target_size, shuffle=True):
-    images = []
-    labels = []
+  def load_images(self, folder_p, folder_n, target_size):
+    images_p = []
+    labels_p = []
+
+    images_n = []
+    labels_n = []
     # load class pneumonia
     for filename in os.listdir(folder_p):
       img = mpimg.imread(os.path.join(folder_p, filename))
@@ -20,8 +23,8 @@ class XRay:
         if img.shape[-1] == 3:
           img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         img = cv2.resize(img, target_size)
-        images.append(img)
-        labels.append(1)
+        images_p.append(img)
+        labels_p.append(1)
       else:
         print "algo deu errado"
         exit(1)
@@ -33,14 +36,11 @@ class XRay:
         if img.shape[-1] == 3:
           img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         img = cv2.resize(img, target_size)
-        images.append(img)
-        labels.append(0)
+        images_n.append(img)
+        labels_n.append(0)
 
       else:
         print "algo deu errado"
         exit(1)
-          
-    if shuffle:
-      images, labels = np_shuffle(images, labels, random_state=0)
       
-    return np.expand_dims(np.array(images), axis=-1), np.array(labels)
+    return np.expand_dims(np.array(images_p), axis=-1), np.array(labels_p), np.expand_dims(np.array(images_n), axis=-1), np.array(labels_n)

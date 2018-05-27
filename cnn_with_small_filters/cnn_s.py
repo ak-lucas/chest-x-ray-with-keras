@@ -22,6 +22,7 @@ from keras.utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 
 from sklearn.model_selection import StratifiedKFold as KFold
+from sklearn.utils import sk_shuffle
 
 path = "/data/lucas/"
 
@@ -29,11 +30,13 @@ path = "/data/lucas/"
 train_dir_p = "chest_xray/train/PNEUMONIA"
 train_dir_n = "chest_xray/train/NORMAL"
 
-test_dir_p =  "chest_xray/test/PNEUMONIA"
-test_dir_n =  "chest_xray/test/NORMAL"
-
 xray = XRay()
-X_train, Y_train = xray.load_images(path + train_dir_p, path + train_dir_n, target_size=(150,150))
+X_p, Y_p, X_n, Y_n = xray.load_images(path + train_dir_p, path + train_dir_n, target_size=(150,150))
+
+x_train = np.concatenate((X_p[:1349], X_n), axis=0)
+y_train = np.concatenate((Y_p[:1349], Y_n), axis=0)
+
+X_train, Y_train = sk_shuffle(x_train, y_train, random_state=0)
 
 # forget the test set for while
 #x_test, y_test = load_images(test_dir_p, test_dir_n)
@@ -47,14 +50,14 @@ fold = 1
 
 # data generator com augmentation - para o treino
 datagen_aug = ImageDataGenerator(
-#    rotation_range=5,
 #    width_shift_range=0.2,
 #    height_shift_range=0.2,
 #    rescale=1./255,
+    rotation_range=5,
     horizontal_flip=True)
 
 # data generator sem o augmentation - para a validação
-datagen_no_aug = ImageDataGenerator(rescale=1./255)
+#datagen_no_aug = ImageDataGenerator()
 
 for train_idx, val_idx in kfold.split(X_train, Y_train):
 	# Create the model

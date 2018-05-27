@@ -10,14 +10,14 @@ class XRay:
   def __init__(self):
     pass
 
-  def load_images(self, folder_p, folder_n, shuffle=True):
+  def load_images(self, folder_p, folder_n, target_size, shuffle=True):
     images = []
     labels = []
     # load class pneumonia
     for filename in os.listdir(folder_p):
       img = mpimg.imread(os.path.join(folder_p, filename))
       if img is not None:
-        images.append(img)
+        images.append(cv2.resize(image, target_size))
         labels.append(1)
       else:
         print "algo deu errado"
@@ -27,7 +27,7 @@ class XRay:
     for filename in os.listdir(folder_n):
       img = mpimg.imread(os.path.join(folder_n, filename))
       if img is not None:
-        images.append(img)
+        images.append(cv2.resize(image, target_size))
         labels.append(0)
 
       else:

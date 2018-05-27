@@ -24,6 +24,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import StratifiedKFold as KFold
 
 path = "/data/lucas/"
+
 # Load the dataset
 train_dir_p = "chest_xray/train/PNEUMONIA"
 train_dir_n = "chest_xray/train/NORMAL"

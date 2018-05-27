@@ -43,4 +43,4 @@ class XRay:
     if shuffle:
       images, labels = np_shuffle(images, labels, random_state=0)
       
-    return images, labels
+    return np.expand_dims(np.array(images), axis=-1), np.array(labels)

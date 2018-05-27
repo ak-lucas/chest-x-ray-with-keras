@@ -61,7 +61,7 @@ for train_idx, val_idx in kfold.split(X_train, Y_train):
 	model = Sequential()
 
 
-	model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(150, 150)))
+	model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(150, 150, 1)))
 	model.add(BatchNormalization())
 	model.add(Activation('relu'))
 	model.add(Conv2D(32, kernel_size=(3, 3), padding='valid'))
@@ -94,20 +94,20 @@ for train_idx, val_idx in kfold.split(X_train, Y_train):
 	#model.add(Dropout(0.5))
 	#model.add(Dense(128, activation='selu', kernel_initializer='lecun_uniform'))
 
-	model.add(Dense(10, kernel_initializer='lecun_uniform'))
+	model.add(Dense(2, kernel_initializer='lecun_uniform'))
 	model.add(BatchNormalization())
 	model.add(Activation('softmax'))
 
 	#opt = RMSprop(lr=0.001, decay=1e-9)
 	#opt = Adagrad(lr=0.001, decay=1e-6)
 	#opt = Adadelta(lr=0.075, decay=1e-6)
-	opt = Adam(lr=0.005, decay=1e-4)
+	opt = Adam(lr=0.000001, decay=1e-4)
 	# Compile the model
 	model.compile(loss='categorical_crossentropy',
 								optimizer=opt,
 								metrics=['accuracy'])
 
-	checkpoint = ModelCheckpoint('../saved_models/model_fold_' + str(fold) + '_{epoch:002d}--{loss:.2f}--{val_loss:.2f}.hdf5', save_best_only=True)
+	checkpoint = ModelCheckpoint('saved_models/model_fold_' + str(fold) + '_{epoch:002d}--{loss:.2f}--{val_loss:.2f}.hdf5', save_best_only=True)
 	
 	# treina e valida o modelo - sem data augmentation
 	#model.fit(X_train[train_idx], to_categorical(Y_train[train_idx]),
@@ -126,7 +126,7 @@ for train_idx, val_idx in kfold.split(X_train, Y_train):
 										epochs=500,
 										shuffle=True,
 										validation_data=(X_train[val_idx], to_categorical(Y_train[val_idx])),
-										callbacks=[EarlyStopping(min_delta=0.001, patience=20), CSVLogger('training_fold_' + str(fold) + '.log', separator=',', append=False), checkpoint])
+										callbacks=[EarlyStopping(min_delta=0.001, patience=10), CSVLogger('training_fold_' + str(fold) + '.log', separator=',', append=False), checkpoint])
 
 
 	fold += 1

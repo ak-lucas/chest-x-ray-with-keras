@@ -17,7 +17,10 @@ class XRay:
     for filename in os.listdir(folder_p):
       img = mpimg.imread(os.path.join(folder_p, filename))
       if img is not None:
-        images.append(cv2.resize(image, target_size))
+        if img.shape[-1] == 3:
+          img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.resize(img, target_size)
+        images.append(img)
         labels.append(1)
       else:
         print "algo deu errado"
@@ -27,7 +30,10 @@ class XRay:
     for filename in os.listdir(folder_n):
       img = mpimg.imread(os.path.join(folder_n, filename))
       if img is not None:
-        images.append(cv2.resize(image, target_size))
+        if img.shape[-1] == 3:
+          img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.resize(img, target_size)
+        images.append(img)
         labels.append(0)
 
       else:

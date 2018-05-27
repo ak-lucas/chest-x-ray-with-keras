@@ -61,7 +61,7 @@ for train_idx, val_idx in kfold.split(X_train, Y_train):
 	model = Sequential()
 
 
-	model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(None, None, 3)))
+	model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(150, 150)))
 	model.add(BatchNormalization())
 	model.add(Activation('relu'))
 	model.add(Conv2D(32, kernel_size=(3, 3), padding='valid'))

@@ -31,7 +31,8 @@ train_dir_n = "chest_xray/train/NORMAL"
 test_dir_p =  "chest_xray/test/PNEUMONIA"
 test_dir_n =  "chest_xray/test/NORMAL"
 
-x_train, y_train = load_images(path + train_dir_p, path + train_dir_n)
+xray = XRay()
+X_train, Y_train = xray.load_images(path + train_dir_p, path + train_dir_n)
 
 # forget the test set for while
 #x_test, y_test = load_images(test_dir_p, test_dir_n)

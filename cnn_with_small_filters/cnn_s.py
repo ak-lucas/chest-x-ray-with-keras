@@ -23,6 +23,7 @@ from keras.preprocessing.image import ImageDataGenerator
 
 from sklearn.model_selection import StratifiedKFold as KFold
 
+path = "/data/lucas/"
 # Load the dataset
 train_dir_p = "chest_xray/train/PNEUMONIA"
 train_dir_n = "chest_xray/train/NORMAL"
@@ -30,7 +31,7 @@ train_dir_n = "chest_xray/train/NORMAL"
 test_dir_p =  "chest_xray/test/PNEUMONIA"
 test_dir_n =  "chest_xray/test/NORMAL"
 
-x_train, y_train = load_images(train_dir_p, train_dir_n)
+x_train, y_train = load_images(path + train_dir_p, path + train_dir_n)
 
 # forget the test set for while
 #x_test, y_test = load_images(test_dir_p, test_dir_n)

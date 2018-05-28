@@ -31,7 +31,9 @@ train_dir_p = "chest_xray/train/PNEUMONIA"
 train_dir_n = "chest_xray/train/NORMAL"
 
 xray = XRay()
-X_p, Y_p, X_n, Y_n = xray.load_images(path + train_dir_p, path + train_dir_n, target_size=(500,500))
+X_p, Y_p, X_n, Y_n = xray.load_images(path + train_dir_p, path + train_dir_n, target_size=(200,200))
+
+X_p, Y_p = sk_shuffle(X_p, Y_p, random_state=0)
 
 x_train = np.concatenate((X_p[:1349], X_n), axis=0)
 y_train = np.concatenate((Y_p[:1349], Y_n), axis=0)
@@ -64,7 +66,7 @@ for train_idx, val_idx in kfold.split(X_train, Y_train):
 	model = Sequential()
 
 
-	model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(500, 500, 1)))
+	model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(200, 200, 1)))
 	model.add(BatchNormalization())
 	model.add(Activation('relu'))
 	model.add(Conv2D(32, kernel_size=(3, 3), padding='valid'))
@@ -104,13 +106,15 @@ for train_idx, val_idx in kfold.split(X_train, Y_train):
 	#opt = RMSprop(lr=0.001, decay=1e-9)
 	#opt = Adagrad(lr=0.001, decay=1e-6)
 	#opt = Adadelta(lr=0.075, decay=1e-6)
-	opt = Adam(lr=0.000001, decay=1e-4)
+	opt = Adam(lr=0.0001, decay=1e-3)
 	# Compile the model
 	model.compile(loss='categorical_crossentropy',
 								optimizer=opt,
 								metrics=['accuracy'])
 
-	checkpoint = ModelCheckpoint('saved_models/model_fold_' + str(fold) + '_{epoch:002d}--{loss:.2f}--{val_loss:.2f}.hdf5', save_best_only=True)
+	checkpoint = ModelCheckpoint('saved_models/model_fold_' + str(fold) + '_{epoch:002d}--{loss:.2f}--{val_loss:.2f}.hdf5',
+                save_best_only=True,
+                save_weights_only=False)
 	
 	# treina e valida o modelo - sem data augmentation
 	#model.fit(X_train[train_idx], to_categorical(Y_train[train_idx]),

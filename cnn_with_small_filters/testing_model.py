@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]=""
 
 import itertools
 
@@ -29,7 +29,7 @@ import sys
 
 model = Sequential()
 
-model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(500, 500, 1))) # 30x30
+model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(200, 200, 1))) # 30x30
 model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(Conv2D(32, kernel_size=(3, 3), padding='valid')) # 28x28
@@ -92,7 +92,7 @@ test_dir_p =  "chest_xray/test/PNEUMONIA"
 test_dir_n =  "chest_xray/test/NORMAL"
 
 xray = XRay()
-X_p, Y_p, X_n, Y_n = xray.load_images(path + test_dir_p, path + test_dir_n, target_size=(150,150))
+X_p, Y_p, X_n, Y_n = xray.load_images(path + test_dir_p, path + test_dir_n, target_size=(200,200))
 
 X_test = np.concatenate((X_p, X_n), axis=0)
 Y_test = np.concatenate((Y_p, Y_n), axis=0)

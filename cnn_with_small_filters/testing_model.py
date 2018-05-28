@@ -29,7 +29,7 @@ import sys
 
 model = Sequential()
 
-model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(150, 150, 1))) # 30x30
+model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(500, 500, 1))) # 30x30
 model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(Conv2D(32, kernel_size=(3, 3), padding='valid')) # 28x28
@@ -103,7 +103,7 @@ print('Accuracy: %.3f' % scores[1])
 
 Y_pred = np.argmax(model.predict(X_test), axis=1)
 print Y_pred.shape, Y_test.shape
-print classification_report(Y_test, Y_pred)
+print classification_report(Y_test, Y_pred, digits=5)
 
 # adaptado de: http://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html
 def plot_confusion_matrix(cm, classes,

@@ -22,7 +22,7 @@ from keras.utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 
 from sklearn.model_selection import StratifiedKFold as KFold
-from sklearn.utils import sk_shuffle
+from sklearn.utils import shuffle as sk_shuffle
 
 path = "/data/lucas/"
 

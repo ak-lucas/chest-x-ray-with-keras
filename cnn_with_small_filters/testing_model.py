@@ -92,7 +92,10 @@ test_dir_p =  "chest_xray/test/PNEUMONIA"
 test_dir_n =  "chest_xray/test/NORMAL"
 
 xray = XRay()
-X_test, Y_test = xray.load_images(path + test_dir_p, path + test_dir_n, target_size=(150,150))
+X_p, Y_p, X_n, Y_n = xray.load_images(path + test_dir_p, path + test_dir_n, target_size=(150,150))
+
+X_test = np.concatenate((X_p, X_n), axis=0)
+Y_test = np.concatenate((Y_p, Y_n), axis=0)
 
 # Evaluate the model
 scores = model.evaluate(X_test, to_categorical(Y_test))

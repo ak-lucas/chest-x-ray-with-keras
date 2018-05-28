@@ -56,7 +56,7 @@ datagen_aug = ImageDataGenerator(
 #    height_shift_range=0.2,
 #    rescale=1./255,
     rotation_range=5,
-    #horizontal_flip=True)
+    horizontal_flip=False)
 
 # data generator sem o augmentation - para a validação
 #datagen_no_aug = ImageDataGenerator()

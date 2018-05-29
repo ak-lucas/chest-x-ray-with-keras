@@ -23,6 +23,7 @@ class XRay:
         if img.shape[-1] == 3:
           img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         img = cv2.resize(img, target_size)
+        img = cv2.normalize(img, img, 0, 1, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
         images_p.append(img)
         labels_p.append(1)
       else:
@@ -36,6 +37,7 @@ class XRay:
         if img.shape[-1] == 3:
           img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         img = cv2.resize(img, target_size)
+        img = cv2.normalize(img, img, 0, 1, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
         images_n.append(img)
         labels_n.append(0)
 

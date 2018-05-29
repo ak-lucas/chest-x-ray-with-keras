@@ -38,34 +38,46 @@ input_img = Input(shape=(150,150,1))
 
 # inception module with dimension reduction
 flow_1 = Conv2D(32, kernel_size=(1, 1), padding='same', strides=(2,2))(input_img)
-#flow_1 = BatchNormalization()(flow_1)
+flow_1 = BatchNormalization()(flow_1)
 flow_1 = Activation('relu')(flow_1)
 
 flow_2 = Conv2D(32, kernel_size=(1, 1), padding='same')(input_img)
-#flow_2 = BatchNormalization()(flow_1)
+flow_2 = BatchNormalization()(flow_2)
 flow_2 = Activation('relu')(flow_2)
 flow_2 = Conv2D(32, kernel_size=(3, 3), padding='same', strides=(2,2))(flow_2)
-#flow_2 = BatchNormalization()(flow_1)
+flow_2 = BatchNormalization()(flow_2)
 flow_2 = Activation('relu')(flow_2)
 #flow_2 = MaxPooling2D(pool_size=(2,2))
 
 flow_3 = Conv2D(32, kernel_size=(1, 1), padding='same')(input_img)
-#flow_3 = BatchNormalization()(flow_1)
+flow_3 = BatchNormalization()(flow_3)
 flow_3 = Activation('relu')(flow_3)
 flow_3 = Conv2D(32, kernel_size=(5, 5), padding='same', strides=(2,2))(flow_3)
-#flow_3 = BatchNormalization()(flow_1)
+flow_3 = BatchNormalization()(flow_3)
 flow_3 = Activation('relu')(flow_3)
 #flow_3 = MaxPooling2D(pool_size=(2,2))
 
 flow_4 = MaxPooling2D(pool_size=(3, 3), padding='same', strides=(1, 1))(input_img)
 flow_4 = Conv2D(32, kernel_size=(5, 5), padding='same', strides=(2,2))(flow_4)
-#flow_4 = BatchNormalization()(flow_1)
+flow_4 = BatchNormalization()(flow_4)
 flow_4 = Activation('relu')(flow_4)
 
 concat = concatenate([flow_1, flow_2, flow_3, flow_4], axis=3)
 #concat = concatenate([flow_2, flow_3],axis=3)
 
-flatten = Flatten()(concat)
+conv = Conv2D(128, kernel_size=(3,3), padding='valid')(concat)
+conv = BatchNormalization()(conv)
+conv = Activation('relu')(conv)
+conv = MaxPooling2D(pool_size=(2,2), padding='valid')(conv)
+conv = Dropout(0.5)(conv)
+
+conv2 = Conv2D(128, kernel_size=(2,2), padding='valid')(conv)
+conv2 = BatchNormalization()(conv2)
+conv2 = Activation('relu')(conv2)
+conv2 = MaxPooling2D(pool_size=(2,2), padding='valid')(conv2)
+conv2 = Dropout(0.5)(conv2)
+
+flatten = Flatten()(conv2)
 
 # fully connected
 
@@ -85,7 +97,7 @@ model = Model(inputs=input_img, outputs=output)
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.0001, decay=1e-6)
+opt = Adam(lr=0.00001, decay=1e-6)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
@@ -114,10 +126,12 @@ val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(15
 																									color_mode='grayscale',
 																									class_mode='categorical',
 																									seed=7)
-model.fit_generator(
-									train_generator,
+model.fit_generator(                                                    train_generator,class_weight={0:3, 1:1},
 									steps_per_epoch=37, # partition size / batch size
 									epochs=500,
 									shuffle=True,
+                                                                        max_queue_size=20,
 									validation_data=val_generator,
 									callbacks=[EarlyStopping(min_delta=0.001, patience=10), CSVLogger('training.log', separator=',', append=False), checkpoint])
+
+print model.summary()

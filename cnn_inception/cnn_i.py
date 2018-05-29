@@ -27,24 +27,24 @@ datagen_aug = ImageDataGenerator(
 #    width_shift_range=0.2,
 #    height_shift_range=0.2,
     rescale=1./255,
-#    rotation_range=10,
+    rotation_range=10,
     horizontal_flip=False)
 
 # data generator sem o augmentation - para a validação
 datagen_no_aug = ImageDataGenerator(rescale=1./255)
 
 # Create the model
-input_img = Input(shape=(50,50,1))
+input_img = Input(shape=(150,150,1))
 
 # inception module with dimension reduction
-flow_1 = Conv2D(32, kernel_size=(1, 1), padding='same')(input_img)
+flow_1 = Conv2D(32, kernel_size=(1, 1), padding='same', strides=(2,2))(input_img)
 #flow_1 = BatchNormalization()(flow_1)
 flow_1 = Activation('relu')(flow_1)
 
 flow_2 = Conv2D(32, kernel_size=(1, 1), padding='same')(input_img)
 #flow_2 = BatchNormalization()(flow_1)
-flow_2 = Activation('relu')(flow_1)
-flow_2 = Conv2D(32, kernel_size=(3, 3), padding='same')(flow_2)
+flow_2 = Activation('relu')(flow_2)
+flow_2 = Conv2D(32, kernel_size=(3, 3), padding='same', strides=(2,2))(flow_2)
 #flow_2 = BatchNormalization()(flow_1)
 flow_2 = Activation('relu')(flow_2)
 #flow_2 = MaxPooling2D(pool_size=(2,2))
@@ -52,29 +52,30 @@ flow_2 = Activation('relu')(flow_2)
 flow_3 = Conv2D(32, kernel_size=(1, 1), padding='same')(input_img)
 #flow_3 = BatchNormalization()(flow_1)
 flow_3 = Activation('relu')(flow_3)
-flow_3 = Conv2D(32, kernel_size=(5, 5), padding='same')(flow_3)
+flow_3 = Conv2D(32, kernel_size=(5, 5), padding='same', strides=(2,2))(flow_3)
 #flow_3 = BatchNormalization()(flow_1)
 flow_3 = Activation('relu')(flow_3)
 #flow_3 = MaxPooling2D(pool_size=(2,2))
 
 flow_4 = MaxPooling2D(pool_size=(3, 3), padding='same', strides=(1, 1))(input_img)
-flow_4 = Conv2D(64, kernel_size=(5, 5), padding='same')(flow_4)
+flow_4 = Conv2D(32, kernel_size=(5, 5), padding='same', strides=(2,2))(flow_4)
 #flow_4 = BatchNormalization()(flow_1)
 flow_4 = Activation('relu')(flow_4)
 
 concat = concatenate([flow_1, flow_2, flow_3, flow_4], axis=3)
+#concat = concatenate([flow_2, flow_3],axis=3)
 
 flatten = Flatten()(concat)
 
 # fully connected
 
-fc_1 = Dense(256, activation='selu', kernel_initializer='lecun_uniform')(flatten)
-fc_1 = Dropout(0.5)(fc_1)
+fc_1 = Dense(128, activation='selu', kernel_initializer='lecun_uniform')(flatten)
+fc_1 = Dropout(0.25)(fc_1)
 
-fc_2 = Dense(128, activation='selu', kernel_initializer='lecun_uniform')(fc_1)
-fc_2 = Dropout(0.5)(fc_2)
+#fc_2 = Dense(64, activation='selu', kernel_initializer='lecun_uniform')(fc_1)
+#fc_2 = Dropout(0.5)(fc_2)
 
-output = Dense(2, kernel_initializer='lecun_uniform')(fc_2)
+output = Dense(2, kernel_initializer='lecun_uniform')(fc_1)
 output = BatchNormalization()(output)
 output = Activation('softmax')(output)
 
@@ -102,21 +103,21 @@ checkpoint = ModelCheckpoint('saved_models/model_{epoch:002d}--{loss:.2f}--{val_
 #					callbacks=[EarlyStopping(min_delta=0.001, patience=10), CSVLogger('training_fold_' + str(fold) + '.log', separator=',', append=False), checkpoint])
 
 # treina e valida o modelo - com data augmentation
-train_generator = datagen_aug.flow_from_directory(path+train_dir, target_size=(50,50),
-																									batch_size=1,
+train_generator = datagen_aug.flow_from_directory(path+train_dir, target_size=(150,150),
+																									batch_size=128,
 																									color_mode='grayscale',
 																									class_mode='categorical',
 																									seed=7,
 																									)
-val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(50,50),
-																									batch_size=1,
+val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(150,150),
+																									batch_size=128,
 																									color_mode='grayscale',
 																									class_mode='categorical',
 																									seed=7)
 model.fit_generator(
 									train_generator,
-									steps_per_epoch=4710, # partition size / batch size
+									steps_per_epoch=37, # partition size / batch size
 									epochs=500,
 									shuffle=True,
-									validation_data=val_generator)
-#									callbacks=[EarlyStopping(min_delta=0.001, patience=10), CSVLogger('training.log', separator=',', append=False), checkpoint])
+									validation_data=val_generator,
+									callbacks=[EarlyStopping(min_delta=0.001, patience=10), CSVLogger('training.log', separator=',', append=False), checkpoint])

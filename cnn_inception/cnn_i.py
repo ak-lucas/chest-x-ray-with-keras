@@ -16,7 +16,7 @@ from keras.models import Model
 
 from keras.preprocessing.image import ImageDataGenerator
 
-path = "/data/lucas/chest_xray/"
+path = "/data/lucas/chest_xray_20/"
 
 # Load the dataset
 train_dir = "train/"
@@ -87,12 +87,12 @@ flatten = Flatten()(conv2)
 # fully connected
 
 fc_1 = Dense(256, activation='selu', kernel_initializer='lecun_uniform')(flatten)
-fc_1 = Dropout(0.25)(fc_1)
+fc_1 = Dropout(0.5)(fc_1)
 
-#fc_2 = Dense(64, activation='selu', kernel_initializer='lecun_uniform')(fc_1)
+fc_2 = Dense(128, activation='selu', kernel_initializer='lecun_uniform')(fc_1)
 #fc_2 = Dropout(0.5)(fc_2)
 
-output = Dense(2, kernel_initializer='lecun_uniform')(fc_1)
+output = Dense(2, kernel_initializer='lecun_uniform')(fc_2)
 output = BatchNormalization()(output)
 output = Activation('softmax')(output)
 
@@ -102,7 +102,7 @@ model = Model(inputs=input_img, outputs=output)
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.000001, decay=1e-6)
+opt = Adam(lr=0.00001, decay=5e-9)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
@@ -131,11 +131,14 @@ val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(15
 																									color_mode='rgb',
 																									class_mode='categorical',
 																									seed=7)
+
+print train_generator.class_indices
+
 model.fit_generator(                                                    train_generator,class_weight={0:3, 1:1},
 									steps_per_epoch=37, # partition size / batch size
 									epochs=500,
 									shuffle=True,
-                                                                        max_queue_size=20,
+                                                                        max_queue_size=30,
 									validation_data=val_generator,
 									callbacks=[EarlyStopping(min_delta=0.001, patience=10), CSVLogger('training.log', separator=',', append=False), checkpoint])
 

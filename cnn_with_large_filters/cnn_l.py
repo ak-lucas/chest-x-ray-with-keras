@@ -55,7 +55,7 @@ datagen_aug = ImageDataGenerator(
 #    width_shift_range=0.2,
 #    height_shift_range=0.2,
 #    rescale=1./255,
-    rotation_range=5,
+    rotation_range=10,
     horizontal_flip=False)
 
 # data generator sem o augmentation - para a validação
@@ -72,7 +72,7 @@ for train_idx, val_idx in kfold.split(X_train, Y_train):
 	model.add(Conv2D(32, kernel_size=(15, 15), padding='valid'))
 	model.add(BatchNormalization())
 	model.add(Activation('relu'))
-	model.add(MaxPooling2D(pool_size=(4, 4)))
+	model.add(MaxPooling2D(pool_size=(2, 2)))
 	model.add(Dropout(0.25))
 
 
@@ -82,14 +82,14 @@ for train_idx, val_idx in kfold.split(X_train, Y_train):
 	model.add(Conv2D(64, kernel_size=(10, 10), padding='valid'))
 	model.add(BatchNormalization())
 	model.add(Activation('relu'))
-	model.add(MaxPooling2D(pool_size=(4, 4)))
+	model.add(MaxPooling2D(pool_size=(2, 2)))
 	model.add(Dropout(0.25))
 
 	model.add(Conv2D(256, kernel_size=(7, 7), padding='valid'))
 	model.add(BatchNormalization())
 	model.add(Activation('relu'))
 	model.add(MaxPooling2D(pool_size=(2, 2)))
-	model.add(Dropout(0.25))  
+	model.add(Dropout(0.5))  
 
 	model.add(Flatten())
 
@@ -106,7 +106,7 @@ for train_idx, val_idx in kfold.split(X_train, Y_train):
 	#opt = RMSprop(lr=0.001, decay=1e-9)
 	#opt = Adagrad(lr=0.001, decay=1e-6)
 	#opt = Adadelta(lr=0.075, decay=1e-6)
-	opt = Adam(lr=0.000001, decay=1e-6)
+	opt = Adam(lr=0.0000001, decay=1e-6)
 	# Compile the model
 	model.compile(loss='categorical_crossentropy',
 								optimizer=opt,

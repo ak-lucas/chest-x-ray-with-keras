@@ -34,7 +34,7 @@ datagen_aug = ImageDataGenerator(
 datagen_no_aug = ImageDataGenerator(rescale=1./255)
 
 # Create the model
-input_img = Input(shape=(150,150,1))
+input_img = Input(shape=(150,150,3))
 
 # inception module with dimension reduction
 flow_1 = Conv2D(32, kernel_size=(1, 1), padding='same')(input_img)
@@ -74,19 +74,19 @@ conv = Conv2D(128, kernel_size=(3,3), padding='valid')(concat)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
 conv = MaxPooling2D(pool_size=(2,2), padding='valid')(conv)
-conv = Dropout(0.5)(conv)
+conv = Dropout(0.25)(conv)
 
 conv2 = Conv2D(128, kernel_size=(2,2), padding='valid')(conv)
 conv2 = BatchNormalization()(conv2)
 conv2 = Activation('relu')(conv2)
 conv2 = MaxPooling2D(pool_size=(2,2), padding='valid')(conv2)
-conv2 = Dropout(0.5)(conv2)
+conv2 = Dropout(0.25)(conv2)
 
 flatten = Flatten()(conv2)
 
 # fully connected
 
-fc_1 = Dense(128, activation='selu', kernel_initializer='lecun_uniform')(flatten)
+fc_1 = Dense(256, activation='selu', kernel_initializer='lecun_uniform')(flatten)
 fc_1 = Dropout(0.25)(fc_1)
 
 #fc_2 = Dense(64, activation='selu', kernel_initializer='lecun_uniform')(fc_1)
@@ -102,7 +102,7 @@ model = Model(inputs=input_img, outputs=output)
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.00001, decay=1e-6)
+opt = Adam(lr=0.000001, decay=1e-6)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
@@ -122,13 +122,13 @@ checkpoint = ModelCheckpoint('saved_models/model_{epoch:002d}--{loss:.2f}--{val_
 # treina e valida o modelo - com data augmentation
 train_generator = datagen_aug.flow_from_directory(path+train_dir, target_size=(150,150),
 																									batch_size=128,
-																									color_mode='grayscale',
+																									color_mode='rgb',
 																									class_mode='categorical',
 																									seed=7,
 																									)
 val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(150,150),
 																									batch_size=128,
-																									color_mode='grayscale',
+																									color_mode='rgb',
 																									class_mode='categorical',
 																									seed=7)
 model.fit_generator(                                                    train_generator,class_weight={0:3, 1:1},

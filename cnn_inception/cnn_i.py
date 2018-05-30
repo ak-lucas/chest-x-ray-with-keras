@@ -28,7 +28,7 @@ datagen_aug = ImageDataGenerator(
 #    height_shift_range=0.2,
     rescale=1./255,
     rotation_range=10,
-    horizontal_flip=False)
+    horizontal_flip=True)
 
 # data generator sem o augmentation - para a validação
 datagen_no_aug = ImageDataGenerator(rescale=1./255)
@@ -67,10 +67,10 @@ flow_4 = MaxPooling2D(pool_size=(2,2))(flow_4)
 concat = concatenate([flow_1, flow_2, flow_3, flow_4], axis=3)
 #concat = concatenate([flow_2, flow_3],axis=3)
 
-conv = Conv2D(128, kernel_size=(3,3), padding='valid')(concat)
+conv = Conv2D(64, kernel_size=(3,3), padding='valid')(concat)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
-conv = Conv2D(128, kernel_size=(3,3), padding='valid')(concat)
+conv = Conv2D(64, kernel_size=(3,3), padding='valid')(concat)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
 conv = MaxPooling2D(pool_size=(2,2), padding='valid')(conv)
@@ -79,10 +79,19 @@ conv = Dropout(0.25)(conv)
 conv2 = Conv2D(128, kernel_size=(2,2), padding='valid')(conv)
 conv2 = BatchNormalization()(conv2)
 conv2 = Activation('relu')(conv2)
+conv2 = Conv2D(128, kernel_size=(2,2), padding='valid')(conv2)
+conv2 = BatchNormalization()(conv2)
+conv2 = Activation('relu')(conv2)
 conv2 = MaxPooling2D(pool_size=(2,2), padding='valid')(conv2)
 conv2 = Dropout(0.25)(conv2)
 
-flatten = Flatten()(conv2)
+conv3 = Conv2D(256, kernel_size=(2,2), padding='valid')(conv2)
+conv3 = BatchNormalization()(conv3)
+conv3 = Activation('relu')(conv3)
+conv3 = MaxPooling2D(pool_size=(2,2), padding='valid')(conv3)
+conv3 = Dropout(0.5)(conv3)
+
+flatten = Flatten()(conv3)
 
 # fully connected
 

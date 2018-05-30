@@ -18,7 +18,7 @@ from keras.applications.xception import Xception
 
 from keras.preprocessing.image import ImageDataGenerator
 
-path = "/data/lucas/chest_xray/"
+path = "/data/lucas/chest_xray_20/"
 
 # Load the dataset
 train_dir = "train/"
@@ -36,16 +36,16 @@ datagen_aug = ImageDataGenerator(
 datagen_no_aug = ImageDataGenerator(rescale=1./255)
 
 # Create the model
-input_img = Input(shape=(150,150,3))
+input_img = Input(shape=(299,299,3))
 
 # pre-trained model
 pt_model = Xception(
-									include_top=False,
-									weights='imagenet',
-									input_tensor=input_img,
-									input_shape=(150,150,3),
-									pooling='max'
-									)
+		    					include_top=False,
+    							weights='imagenet',
+    							input_tensor=input_img,
+	    						input_shape=(299,299,3),
+	    						pooling='max'
+                                                        )
 
 for layer in pt_model.layers:
 	layer.trainable = False
@@ -53,8 +53,10 @@ for layer in pt_model.layers:
 # new fully connected layer
 x = pt_model.output
 fc_1 = Dense(1024, activation='selu')(x)
+fc_1 = Dropout(0.5)(fc_1)
+fc_2 = Dense(128, activation='selu')(fc_1)
 
-output = Dense(2, activation='softmax')(fc_1)
+output = Dense(2, activation='softmax')(fc_2)
 
 # Compile the model
 model = Model(inputs=input_img, outputs=output)
@@ -62,7 +64,7 @@ model = Model(inputs=input_img, outputs=output)
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.00001, decay=1e-6)
+opt = Adam(lr=0.0001, decay=5e-6)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
@@ -80,20 +82,20 @@ checkpoint = ModelCheckpoint('saved_models/model_{epoch:002d}--{loss:.2f}--{val_
 #					callbacks=[EarlyStopping(min_delta=0.001, patience=10), CSVLogger('training_fold_' + str(fold) + '.log', separator=',', append=False), checkpoint])
 
 # treina e valida o modelo - com data augmentation
-train_generator = datagen_aug.flow_from_directory(path+train_dir, target_size=(150,150),
+train_generator = datagen_aug.flow_from_directory(path+train_dir, target_size=(299,299),
 																									batch_size=128,
 																									color_mode='rgb',
 																									class_mode='categorical',
 																									seed=7,
 																									)
-val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(150,150),
+val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(299,299),
 																									batch_size=128,
 																									color_mode='rgb',
 																									class_mode='categorical',
 																									seed=7)
 
 model.fit_generator(
-									train_generator,
+									train_generator,workers=5,
 									class_weight={0:3, 1:1}, # balance
 									steps_per_epoch=37, # partition size / batch size
 									epochs=500,

@@ -30,7 +30,7 @@ datagen_aug = ImageDataGenerator(
 #    height_shift_range=0.2,
     rescale=1./255,
     rotation_range=10,
-    horizontal_flip=False)
+    horizontal_flip=True)
 
 # data generator sem o augmentation - para a validação
 datagen_no_aug = ImageDataGenerator(rescale=1./255)
@@ -46,15 +46,27 @@ pt_model = Xception(
 	    						input_shape=(299,299,3),
 	    						pooling='max'
                                                         )
+print pt_model.summary()
 
 for layer in pt_model.layers:
 	layer.trainable = False
 
 # new fully connected layer
-x = pt_model.output
-fc_1 = Dense(1024, activation='selu')(x)
+x = pt_model.layers[-2].output
+
+conv1 = Conv2D(64, kernel_size=(3,3), padding='valid')(x)
+conv1 = BatchNormalization()(conv1)
+conv1 = Activation('relu')(conv1)
+conv1 = Conv2D(64, kernel_size=(3,3), padding='valid')(conv1)
+conv1 = BatchNormalization()(conv1)
+conv1 = Activation('relu')(conv1)
+conv1 = Dropout(0.25)(conv1)
+
+flatten = Flatten()(conv1)
+
+fc_1 = Dense(256, activation='selu')(flatten)
 fc_1 = Dropout(0.5)(fc_1)
-fc_2 = Dense(128, activation='selu')(fc_1)
+fc_2 = Dense(64, activation='selu')(fc_1)
 
 output = Dense(2, activation='softmax')(fc_2)
 
@@ -64,7 +76,7 @@ model = Model(inputs=input_img, outputs=output)
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.0001, decay=5e-6)
+opt = Adam(lr=0.00001, decay=5e-9)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
@@ -95,13 +107,13 @@ val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(29
 																									seed=7)
 
 model.fit_generator(
-									train_generator,workers=5,
+									train_generator,workers=1,
 									class_weight={0:3, 1:1}, # balance
 									steps_per_epoch=37, # partition size / batch size
 									epochs=500,
 									shuffle=True,
                   max_queue_size=30,
 									validation_data=val_generator,
-									callbacks=[EarlyStopping(min_delta=0.001, patience=10), CSVLogger('training.log', separator=',', append=False), checkpoint])
+									callbacks=[EarlyStopping(min_delta=0.001, patience=20), CSVLogger('training.log', separator=',', append=False), checkpoint])
 
-print model.summary()
+#print model.summary()

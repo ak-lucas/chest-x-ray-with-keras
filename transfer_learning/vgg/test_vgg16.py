@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]=""
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 import sys
 
@@ -19,7 +19,7 @@ from keras.utils import to_categorical
 from keras.models import Model
 from keras.models import load_model
 
-from keras.applications.xception import Xception
+from keras.applications.vgg16 import VGG16
 
 from keras.preprocessing.image import ImageDataGenerator
 
@@ -64,11 +64,11 @@ model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
 
-test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(299,299),
-																									batch_size=32,
+test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(224,224),
+																									batch_size=1,
 																									color_mode='rgb',
 																									class_mode='categorical',
-																									seed=7)
+																									shuffle=False)
 
 print model.evaluate_generator(test_generator)
 

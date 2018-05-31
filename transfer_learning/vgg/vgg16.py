@@ -29,7 +29,7 @@ datagen_aug = ImageDataGenerator(
 #    width_shift_range=0.2,
 #    height_shift_range=0.2,
     rescale=1./255,
-    rotation_range=10,
+    rotation_range=5,
     horizontal_flip=False)
 
 # data generator sem o augmentation - para a validação
@@ -44,12 +44,14 @@ pt_model = VGG16(
     							weights='imagenet',
     							input_tensor=input_img,
 	    						input_shape=(224,224,3),
-	    						pooling='avg'
+	    						pooling='max'
                                                         )
 
-for layer in pt_model.layers:
+for layer in pt_model.layers[:-2]:
 	layer.trainable = False
 
+for layer in pt_model.layers[-2:]:
+    layer.trainable = True
 # new fully connected layer
 x = pt_model.output
 output = Dense(2, activation='softmax')(x)
@@ -62,7 +64,7 @@ print model.summary()
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.001, decay=5e-6)
+opt = Adam(lr=0.0001, decay=5e-6)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
@@ -95,7 +97,7 @@ val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(22
 model.fit_generator(
 									train_generator,workers=8,
 									class_weight={0:3, 1:1}, # balance
-									steps_per_epoch=37, # partition size / batch size
+									steps_per_epoch=33, # partition size / batch size
 									epochs=500,
 									shuffle=True,
                   max_queue_size=30,

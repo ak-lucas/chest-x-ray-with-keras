@@ -57,10 +57,12 @@ output = Dense(2, activation='softmax')(x)
 # Compile the model
 model = Model(inputs=input_img, outputs=output)
 
+print model.summary()
+
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.0001, decay=5e-6)
+opt = Adam(lr=0.001, decay=5e-6)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])

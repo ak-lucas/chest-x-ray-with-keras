@@ -2,7 +2,11 @@
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]=""
 
+import sys
+
 import numpy as np
+
+from sklearn.metrics import classification_report, confusion_matrix
 
 from keras.callbacks import EarlyStopping, CSVLogger, ModelCheckpoint
 from keras.layers.core import Dense, Dropout, Flatten, Activation
@@ -77,9 +81,9 @@ conv3 = Dropout(0.25)(conv3)
 #flatten = Flatten()(x)
 
 x = Dropout(0.25)(x)
-fc_1 = Dense(1024, activation='selu')(x)
+fc_1 = Dense(512, activation='selu')(x)
 fc_1 = Dropout(0.5)(fc_1)
-fc_2 = Dense(128, activation='selu')(fc_1)
+fc_2 = Dense(512, activation='selu')(fc_1)
 #fc_2 = Dropout(0.25)(fc_2)
 output = Dense(2, activation='softmax')(fc_2)
 
@@ -96,13 +100,13 @@ model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
 
-test_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(299,299),
+test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(299,299),
 																									batch_size=32,
 																									color_mode='rgb',
 																									class_mode='categorical',
 																									seed=7)
 
-model.evaluate_generator(
-									test_generator)
+print model.evaluate_generator(test_generator)
 
-#print model.summary()
+Y_pred = np.argmax(model.predict_generator(test_generator), axis=1)
+print classification_report(test_generator.classes, Y_pred, digits=5)

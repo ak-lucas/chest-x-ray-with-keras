@@ -91,7 +91,7 @@ val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(22
 																									seed=7)
 
 model.fit_generator(
-									train_generator,workers=1,
+									train_generator,workers=8,
 									class_weight={0:3, 1:1}, # balance
 									steps_per_epoch=37, # partition size / batch size
 									epochs=500,

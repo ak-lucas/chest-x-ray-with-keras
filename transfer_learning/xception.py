@@ -97,7 +97,7 @@ model = Model(inputs=input_img, outputs=output)
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.001, decay=5e-6)
+opt = Adam(lr=0.00001, decay=5e-6)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
@@ -131,7 +131,7 @@ val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(29
 																									seed=7)
 
 model.fit_generator(
-									train_generator,workers=1,
+									train_generator,workers=8,
 									class_weight={0:3, 1:1}, # balance
 									steps_per_epoch=131, # partition size / batch size
 									epochs=500,

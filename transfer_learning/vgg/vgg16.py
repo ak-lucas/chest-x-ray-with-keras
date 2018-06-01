@@ -47,10 +47,10 @@ pt_model = VGG16(
 	    						pooling='max'
                                                         )
 
-for layer in pt_model.layers[:-2]:
+for layer in pt_model.layers[:-4]:
 	layer.trainable = False
 
-for layer in pt_model.layers[-2:]:
+for layer in pt_model.layers[-4:]:
     layer.trainable = True
 # new fully connected layer
 x = pt_model.output
@@ -68,7 +68,7 @@ print model.summary()
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.0005, decay=5e-6)
+opt = Adam(lr=0.0001, decay=5e-6)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])

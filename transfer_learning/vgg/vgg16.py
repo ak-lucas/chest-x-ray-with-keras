@@ -68,7 +68,7 @@ print model.summary()
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.0001, decay=5e-6)
+opt = Adam(lr=0.0005, decay=5e-6)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
@@ -100,12 +100,12 @@ val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(22
 
 model.fit_generator(
 									train_generator,workers=1,
-									class_weight={0:3, 1:1}, # balance
+									class_weight={0:4, 1:1}, # balance
 									steps_per_epoch=33, # partition size / batch size
 									epochs=500,
 									shuffle=True,
                   max_queue_size=30,
 									validation_data=val_generator,
-									callbacks=[EarlyStopping(min_delta=0.001, patience=10), CSVLogger('training.log', separator=',', append=False), checkpoint])
+									callbacks=[EarlyStopping(min_delta=0.001, patience=20), CSVLogger('training.log', separator=',', append=False), checkpoint])
 
 print model.summary()

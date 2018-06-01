@@ -19,7 +19,7 @@ for filename in os.listdir(folder_n):
     img = rescale(img, scale=1.1, mode='constant')
     #img.save("chest_xray/augmented/aug_d_" + filename)
     
-    scipy.misc.imsave('chest_xray/augmented_1/aug_d_' + filename, img)
+    scipy.misc.imsave(train_dir + 'augmented/aug_d_' + filename, img)
   else:
     print "algo deu errado"
     exit(1)
@@ -33,7 +33,7 @@ for filename in os.listdir(folder_n):
     img = rotate(img, angle=4, mode='constant')[50:-50,50:-50]
     img = rescale(img, scale=1.1, mode='constant')
     #img.save("chest_xray/augmented/aug_e_" + filename)
-    scipy.misc.imsave('chest_xray/augmented_2/aug_e_' + filename, img)
+    scipy.misc.imsave(train_dir + 'augmented/aug_e_' + filename, img)
   else:
     print "algo deu errado"
     exit(1)

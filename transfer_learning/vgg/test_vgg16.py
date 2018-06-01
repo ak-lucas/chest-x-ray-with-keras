@@ -23,6 +23,16 @@ from keras.applications.vgg16 import VGG16
 
 from keras.preprocessing.image import ImageDataGenerator
 
+import keras
+from keras import backend as K
+
+def threshold_binary_accuracy(y_true, y_pred):
+  threshold=0.6
+  if K.backend() == 'tensorflow':
+    return K.mean(K.equal(y_true, K.tf.cast(K.lesser(y_pred,threshold), y_true.dtype)))
+  else:
+    return K.mean(K.equal(y_true, K.lesser(y_pred,threshold)))
+
 path = "/data/lucas/chest_xray_20/"
 
 # Load the dataset
@@ -65,7 +75,7 @@ model.load_weights(sys.argv[1])
 opt = Adam(lr=0.001, decay=5e-6)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
-							metrics=['accuracy'])
+							metrics=[threshold_binary_accuracy])
 
 test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(224,224),
 																									batch_size=1,

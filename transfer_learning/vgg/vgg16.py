@@ -54,7 +54,11 @@ for layer in pt_model.layers[-2:]:
     layer.trainable = True
 # new fully connected layer
 x = pt_model.output
-output = Dense(2, activation='softmax')(x)
+fc_1 = Dense(512, activation='selu')(x)
+fc_1 = Dropout(0.5)(fc_1)
+fc_2 = Dense(512, activation='selu')(fc_1)
+fc_2 = Dropout(0.25)(fc_2)
+output = Dense(2, activation='softmax')(fc_2)
 
 # Compile the model
 model = Model(inputs=input_img, outputs=output)
@@ -95,7 +99,7 @@ val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(22
 																									seed=7)
 
 model.fit_generator(
-									train_generator,workers=8,
+									train_generator,workers=1,
 									class_weight={0:3, 1:1}, # balance
 									steps_per_epoch=33, # partition size / batch size
 									epochs=500,

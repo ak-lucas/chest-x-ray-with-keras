@@ -49,7 +49,10 @@ for layer in pt_model.layers:
 
 # new fully connected layer
 x = pt_model.output
-output = Dense(2, activation='softmax')(x)
+fc_1 = Dense(512, activation='selu')(x)
+fc_2 = Dense(512, activation='selu')(fc_1)
+
+output = Dense(2, activation='softmax')(fc_2)
 
 # Compile the model
 model = Model(inputs=input_img, outputs=output)

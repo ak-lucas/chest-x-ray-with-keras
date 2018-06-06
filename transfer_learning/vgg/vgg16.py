@@ -38,12 +38,12 @@ val_dir = "val/"
 datagen_aug = ImageDataGenerator(
 #    width_shift_range=0.2,
 #    height_shift_range=0.2,
-    rescale=1./255,
+#    rescale=1./255,
     rotation_range=1,
     horizontal_flip=False)
 
 # data generator sem o augmentation - para a validação
-datagen_no_aug = ImageDataGenerator(rescale=1./255)
+datagen_no_aug = ImageDataGenerator()
 
 # Create the model
 input_img = Input(shape=(224,224,3))
@@ -57,19 +57,19 @@ pt_model = VGG16(
 #	    						pooling='avg'
 #                                                        )
 
-for layer in pt_model.layers[:-6]:
+for layer in pt_model.layers[:-8]:
 	layer.trainable = False
 
-for layer in pt_model.layers[-6:]:
+for layer in pt_model.layers[-8:]:
     layer.trainable = True
 # new fully connected layer
 x = pt_model.layers[-2].output
 #x = Flatten()(x)
-#fc_1 = Dense(512, activation='relu')(x)
+fc_1 = Dense(128, activation='selu')(x)
 #fc_1 = Dropout(0.25)(fc_1)
 #fc_2 = Dense(512, activation='relu')(fc_1)
 #fc_2 = Dropout(0.5)(fc_2)
-output = Dense(2, activation='softmax')(x)
+output = Dense(2, activation='softmax')(fc_1)
 
 # Compile the model
 model = Model(inputs=input_img, outputs=output)
@@ -112,11 +112,11 @@ val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(22
 
 model.fit_generator(
 									train_generator,workers=1,
-									class_weight={0:3, 1:1}, # balance
+									class_weight={0:4, 1:1}, # balance
 									steps_per_epoch=199, # (partition size / batch size)+1
 									epochs=500,
 									shuffle=True,
-                  max_queue_size=30,
+                  max_queue_size=20,
 									validation_data=val_generator,
 									callbacks=[EarlyStopping(min_delta=0.001, patience=20), CSVLogger('training.log', separator=',', append=False), checkpoint])
 

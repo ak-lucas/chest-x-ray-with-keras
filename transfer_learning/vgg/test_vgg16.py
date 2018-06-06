@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 import sys
 
@@ -27,11 +27,11 @@ import keras
 from keras import backend as K
 
 def threshold_binary_accuracy(y_true, y_pred):
-  threshold=0.6
+  threshold=0.5
   if K.backend() == 'tensorflow':
-    return K.mean(K.equal(y_true, K.tf.cast(K.lesser(y_pred,threshold), y_true.dtype)))
+    return K.mean(K.equal(y_true, K.tf.cast(K.less(y_pred,threshold), y_true.dtype)))
   else:
-    return K.mean(K.equal(y_true, K.lesser(y_pred,threshold)))
+    return K.mean(K.equal(y_true, K.less(y_pred,threshold)))
 
 path = "/data/lucas/chest_xray_20/"
 
@@ -39,7 +39,7 @@ path = "/data/lucas/chest_xray_20/"
 test_dir = "test/"
 
 # data generator sem o augmentation - para a validação
-datagen_no_aug = ImageDataGenerator(rescale=1./255)
+datagen_no_aug = ImageDataGenerator()
 
 # Create the model
 # Create the model
@@ -47,22 +47,24 @@ input_img = Input(shape=(224,224,3))
 
 # pre-trained model
 pt_model = VGG16(
-		    					include_top=False,
+		    					include_top=True,
     							weights='imagenet',
     							input_tensor=input_img,
-	    						input_shape=(224,224,3),
-	    						pooling='avg'
-                                                        )
+	    						input_shape=(224,224,3))
+#	    						pooling='avg'
+#                                                        )
 
 for layer in pt_model.layers:
 	layer.trainable = False
 
 # new fully connected layer
-x = pt_model.output
-fc_1 = Dense(512, activation='selu')(x)
-fc_2 = Dense(512, activation='selu')(fc_1)
-
-output = Dense(2, activation='softmax')(fc_2)
+x = pt_model.layers[-2].output
+#x = Flatten()(x)
+fc_1 = Dense(128, activation='selu')(x)
+#fc_1 = Dropout(0.5)(fc_1)
+#fc_2 = Dense(512, activation='relu')(fc_1)
+#fc_2 = Dropout(0.5)(fc_2)
+output = Dense(2, activation='softmax')(fc_1)
 
 # Compile the model
 model = Model(inputs=input_img, outputs=output)
@@ -75,7 +77,7 @@ model.load_weights(sys.argv[1])
 opt = Adam(lr=0.001, decay=5e-6)
 model.compile(loss='categorical_crossentropy',
 							optimizer=opt,
-							metrics=[threshold_binary_accuracy])
+							metrics=['accuracy'])
 
 test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(224,224),
 																									batch_size=1,

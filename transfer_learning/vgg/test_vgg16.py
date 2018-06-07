@@ -39,7 +39,7 @@ path = "/data/lucas/chest_xray_20/"
 test_dir = "test/"
 
 # data generator sem o augmentation - para a validação
-datagen_no_aug = ImageDataGenerator()
+datagen_no_aug = ImageDataGenerator(rescale=1./255)
 
 # Create the model
 # Create the model
@@ -64,7 +64,7 @@ fc_1 = Dense(128, activation='selu')(x)
 #fc_1 = Dropout(0.5)(fc_1)
 #fc_2 = Dense(512, activation='relu')(fc_1)
 #fc_2 = Dropout(0.5)(fc_2)
-output = Dense(2, activation='softmax')(fc_1)
+output = Dense(1, activation='sigmoid')(fc_1)
 
 # Compile the model
 model = Model(inputs=input_img, outputs=output)
@@ -75,17 +75,18 @@ model.load_weights(sys.argv[1])
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
 opt = Adam(lr=0.001, decay=5e-6)
-model.compile(loss='categorical_crossentropy',
+model.compile(loss='binary_crossentropy',
 							optimizer=opt,
 							metrics=['accuracy'])
 
 test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(224,224),
 																									batch_size=1,
 																									color_mode='rgb',
-																									class_mode='categorical',
+																									class_mode='binary',
 																									shuffle=False)
 
 print model.evaluate_generator(test_generator)
 
-Y_pred = np.argmax(model.predict_generator(test_generator), axis=1)
+Y_pred = model.predict_generator(test_generator) > 0.6
+
 print classification_report(test_generator.classes, Y_pred, digits=5)

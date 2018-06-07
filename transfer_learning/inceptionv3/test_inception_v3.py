@@ -80,5 +80,7 @@ test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(
 
 print model.evaluate_generator(test_generator)
 
-Y_pred = np.argmax(model.predict_generator(test_generator), axis=1)
+#Y_pred = np.argmax(model.predict_generator(test_generator), axis=1)
+Y_pred = model.predict_generator(test_generator) > 0.75
+print Y_pred
 print classification_report(test_generator.classes, Y_pred, digits=5)

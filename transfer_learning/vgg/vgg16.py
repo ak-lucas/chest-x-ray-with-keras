@@ -4,7 +4,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 import numpy as np
 
-from keras.callbacks import EarlyStopping, CSVLogger, ModelCheckpoint
+from keras.callbacks import EarlyStopping, CSVLogger, ModelCheckpoint, Callback
 from keras.layers.core import Dense, Dropout, Flatten, Activation
 from keras.layers.convolutional import Conv2D
 from keras.optimizers import Adam, Adadelta, Adagrad, RMSprop, SGD
@@ -21,12 +21,20 @@ from keras.preprocessing.image import ImageDataGenerator
 import keras
 from keras import backend as K
 
-def threshold_binary_accuracy(y_true, y_pred):
-  threshold=0.6
-  if K.backend() == 'tensorflow':
-    return K.mean(K.equal(y_true, K.tf.cast(K.less(y_pred,threshold), y_true.dtype)))
-  else:
-    return K.mean(K.equal(y_true, K.less(y_pred,threshold)))
+threshold = 0.55
+
+def accuracy_with_threshold(y_true, y_pred):
+	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
+	return K.mean(K.equal(y_true, y_pred))
+
+
+
+class threshold_metrics(Callback):
+    def on_train_begin(self, logs={}):
+        self.losses = []
+
+    def on_batch_end(self, batch, logs={}):
+        self.losses.append(logs.get('loss'))
 
 path = "/data/lucas/chest_xray_20/"
 
@@ -83,7 +91,7 @@ opt = Adam(lr=0.0000001, decay=1e-9)
 #opt = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=False)
 model.compile(loss='binary_crossentropy',
 							optimizer=opt,
-							metrics=['accuracy'])
+							metrics=['accuracy', accuracy_with_threshold])
 
 checkpoint = ModelCheckpoint('saved_models/model_{epoch:0003d}--{loss:.2f}--{val_loss:.2f}.hdf5',
               save_best_only=True,

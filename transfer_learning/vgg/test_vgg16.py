@@ -25,7 +25,7 @@ from keras.preprocessing.image import ImageDataGenerator
 
 import keras
 from keras import backend as K
-
+from sklearn.metrics import f1_score
 threshold = 0.8
 
 def accuracy_with_threshold(y_true, y_pred):
@@ -34,7 +34,7 @@ def accuracy_with_threshold(y_true, y_pred):
 
 def fscore_with_threshold(y_true, y_pred):
 	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
-	return f1_score(y_true, y_pred)
+	return f1_score(y_true, y_pred, average='macro')
 
 path = "/data/lucas/chest_xray_20/"
 

@@ -95,7 +95,7 @@ opt = Adam(lr=0.0000001, decay=1e-9)
 #opt = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=False)
 model.compile(loss='binary_crossentropy',
 							optimizer=opt,
-							metrics=['accuracy', accuracy_with_threshold, fscore_with_threshold])
+                                                        metrics=['accuracy', accuracy_with_threshold])
 
 checkpoint = ModelCheckpoint('saved_models/model_{epoch:0003d}--{loss:.2f}--{val_loss:.2f}.hdf5',
               save_best_only=True,

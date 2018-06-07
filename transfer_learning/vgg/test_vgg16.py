@@ -87,6 +87,6 @@ test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(
 
 print model.evaluate_generator(test_generator)
 
-Y_pred = model.predict_generator(test_generator) > 0.6
+Y_pred = model.predict_generator(test_generator) > 0.56
 
 print classification_report(test_generator.classes, Y_pred, digits=5)

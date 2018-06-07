@@ -64,7 +64,7 @@ for layer in pt_model.layers[-8:]:
     layer.trainable = True
 # new fully connected layer
 x = pt_model.layers[-2].output
-x = Flatten()(x)
+#x = Flatten()(x)
 fc_1 = Dense(128, activation='selu')(x)
 #fc_1 = Dropout(0.25)(fc_1)
 #fc_2 = Dense(512, activation='relu')(fc_1)
@@ -79,7 +79,7 @@ print model.summary()
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.000001, decay=1e-9)
+opt = Adam(lr=0.0000001, decay=1e-9)
 #opt = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=False)
 model.compile(loss='binary_crossentropy',
 							optimizer=opt,

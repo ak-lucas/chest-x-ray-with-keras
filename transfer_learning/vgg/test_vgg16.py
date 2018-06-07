@@ -26,12 +26,11 @@ from keras.preprocessing.image import ImageDataGenerator
 import keras
 from keras import backend as K
 
-def threshold_binary_accuracy(y_true, y_pred):
-  threshold=0.5
-  if K.backend() == 'tensorflow':
-    return K.mean(K.equal(y_true, K.tf.cast(K.less(y_pred,threshold), y_true.dtype)))
-  else:
-    return K.mean(K.equal(y_true, K.less(y_pred,threshold)))
+threshold = 0.72
+
+def accuracy_with_threshold(y_true, y_pred):
+	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
+	return K.mean(K.equal(y_true, y_pred))
 
 path = "/data/lucas/chest_xray_20/"
 
@@ -77,7 +76,7 @@ model.load_weights(sys.argv[1])
 opt = Adam(lr=0.001, decay=5e-6)
 model.compile(loss='binary_crossentropy',
 							optimizer=opt,
-							metrics=['accuracy'])
+							metrics=['accuracy', accuracy_with_threshold])
 
 test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(224,224),
 																									batch_size=1,
@@ -87,6 +86,6 @@ test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(
 
 print model.evaluate_generator(test_generator)
 
-Y_pred = model.predict_generator(test_generator) > 0.56
+Y_pred = model.predict_generator(test_generator) > threshold
 
 print classification_report(test_generator.classes, Y_pred, digits=5)

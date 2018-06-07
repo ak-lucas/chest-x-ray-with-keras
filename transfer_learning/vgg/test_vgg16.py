@@ -32,6 +32,10 @@ def accuracy_with_threshold(y_true, y_pred):
 	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
 	return K.mean(K.equal(y_true, y_pred))
 
+def fscore_with_threshold(y_true, y_pred):
+	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
+	return f1_score(y_true, y_pred)
+
 path = "/data/lucas/chest_xray_20/"
 
 # Load the dataset
@@ -76,7 +80,7 @@ model.load_weights(sys.argv[1])
 opt = Adam(lr=0.001, decay=5e-6)
 model.compile(loss='binary_crossentropy',
 							optimizer=opt,
-							metrics=['accuracy', accuracy_with_threshold])
+							metrics=['accuracy', accuracy_with_threshold, fscore_with_threshold])
 
 test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(224,224),
 																									batch_size=1,

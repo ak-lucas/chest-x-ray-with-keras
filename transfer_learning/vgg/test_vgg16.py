@@ -26,7 +26,7 @@ from keras.preprocessing.image import ImageDataGenerator
 import keras
 from keras import backend as K
 
-threshold = 0.72
+threshold = 0.8
 
 def accuracy_with_threshold(y_true, y_pred):
 	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())

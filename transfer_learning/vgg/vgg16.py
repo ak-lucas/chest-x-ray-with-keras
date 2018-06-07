@@ -3,6 +3,7 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 import numpy as np
+import tensorflow as tf
 
 from keras.callbacks import EarlyStopping, CSVLogger, ModelCheckpoint, Callback
 from keras.layers.core import Dense, Dropout, Flatten, Activation
@@ -28,9 +29,18 @@ def accuracy_with_threshold(y_true, y_pred):
 	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
 	return K.mean(K.equal(y_true, y_pred))
 
-def fscore_with_threshold(y_true, y_pred):
-	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
-	return f1_score(y_true, y_pred)
+def f_score(y_true, y_pred):
+  #y_true = tf.cast(y_true, "int32")
+  y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
+  y_correct = y_true * y_pred
+  sum_true = tf.reduce_sum(y_true, axis=1)
+  sum_pred = tf.reduce_sum(y_pred, axis=1)
+  sum_correct = tf.reduce_sum(y_correct, axis=1)
+  precision = sum_correct / sum_pred
+  recall = sum_correct / sum_true
+  f_score = 2 * precision * recall / (precision + recall)
+  f_score = tf.where(tf.is_nan(f_score), tf.zeros_like(f_score), f_score)
+  return tf.reduce_mean(f_score)
 
 
 class threshold_metrics(Callback):
@@ -95,7 +105,7 @@ opt = Adam(lr=0.0000001, decay=1e-9)
 #opt = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=False)
 model.compile(loss='binary_crossentropy',
 							optimizer=opt,
-                                                        metrics=['accuracy', accuracy_with_threshold])
+                                                        metrics=['accuracy', accuracy_with_threshold, fscore])
 
 checkpoint = ModelCheckpoint('saved_models/model_{epoch:0003d}--{loss:.2f}--{val_loss:.2f}.hdf5',
               save_best_only=True,

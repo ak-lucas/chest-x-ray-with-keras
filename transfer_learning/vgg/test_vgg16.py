@@ -5,6 +5,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="1"
 import sys
 
 import numpy as np
+import tensorflow as tf
 
 from sklearn.metrics import classification_report, confusion_matrix
 
@@ -32,9 +33,18 @@ def accuracy_with_threshold(y_true, y_pred):
 	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
 	return K.mean(K.equal(y_true, y_pred))
 
-def fscore_with_threshold(y_true, y_pred):
-	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
-	return f1_score(y_true, y_pred, average='macro')
+def f_score(y_true, y_pred):
+  #y_true = tf.cast(y_true, "int32")
+  y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
+  y_correct = y_true * y_pred
+  sum_true = tf.reduce_sum(y_true, axis=1)
+  sum_pred = tf.reduce_sum(y_pred, axis=1)
+  sum_correct = tf.reduce_sum(y_correct, axis=1)
+  precision = sum_correct / sum_pred
+  recall = sum_correct / sum_true
+  f_score = 2 * precision * recall / (precision + recall)
+  f_score = tf.where(tf.is_nan(f_score), tf.zeros_like(f_score), f_score)
+  return tf.reduce_mean(f_score)
 
 path = "/data/lucas/chest_xray_20/"
 
@@ -80,7 +90,7 @@ model.load_weights(sys.argv[1])
 opt = Adam(lr=0.001, decay=5e-6)
 model.compile(loss='binary_crossentropy',
 							optimizer=opt,
-							metrics=['accuracy', accuracy_with_threshold, fscore_with_threshold])
+							metrics=['accuracy', accuracy_with_threshold, fscore])
 
 test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(224,224),
 																									batch_size=1,

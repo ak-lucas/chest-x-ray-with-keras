@@ -23,32 +23,11 @@ import keras
 from keras import backend as K
 from sklearn.metrics import f1_score
 
-threshold = 0.75
+threshold = 0.8
 
 def accuracy_with_threshold(y_true, y_pred):
 	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
 	return K.mean(K.equal(y_true, y_pred))
-
-def f_score(y_true, y_pred):
-  #y_true = tf.cast(y_true, "int32")
-  y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
-  y_correct = y_true * y_pred
-  sum_true = tf.reduce_sum(y_true, axis=1)
-  sum_pred = tf.reduce_sum(y_pred, axis=1)
-  sum_correct = tf.reduce_sum(y_correct, axis=1)
-  precision = sum_correct / sum_pred
-  recall = sum_correct / sum_true
-  f_score = 2 * precision * recall / (precision + recall)
-  f_score = tf.where(tf.is_nan(f_score), tf.zeros_like(f_score), f_score)
-  return tf.reduce_mean(f_score)
-
-
-class threshold_metrics(Callback):
-    def on_train_begin(self, logs={}):
-        self.losses = []
-
-    def on_batch_end(self, batch, logs={}):
-        self.losses.append(logs.get('loss'))
 
 path = "/data/lucas/chest_xray_20/"
 
@@ -61,11 +40,12 @@ datagen_aug = ImageDataGenerator(
 #    width_shift_range=0.2,
 #    height_shift_range=0.2,
     rescale=1./255,
-    rotation_range=1,
+    rotation_range=5,
     horizontal_flip=False)
 
 # data generator sem o augmentation - para a validação
 datagen_no_aug = ImageDataGenerator(rescale=1./255)
+#datagen_no_aug = ImageDataGenerator()
 
 # Create the model
 input_img = Input(shape=(224,224,3))
@@ -79,13 +59,13 @@ pt_model = VGG16(
 #	    						pooling='avg'
 #                                                        )
 
-for layer in pt_model.layers[:-8]:
+for layer in pt_model.layers[:-6]:
 	layer.trainable = False
 
-for layer in pt_model.layers[-8:]:
+for layer in pt_model.layers[-6:]:
     layer.trainable = True
 # new fully connected layer
-x = pt_model.layers[-2].output
+x = pt_model.layers[-3].output
 #x = Flatten()(x)
 fc_1 = Dense(128, activation='selu')(x)
 #fc_1 = Dropout(0.25)(fc_1)
@@ -101,23 +81,15 @@ print model.summary()
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.0000001, decay=1e-9)
+opt = Adam(lr=0.00000005, decay=1e-9)
 #opt = SGD(lr=0.00001, decay=1e-6, momentum=0.9, nesterov=False)
 model.compile(loss='binary_crossentropy',
 							optimizer=opt,
-                                                        metrics=['accuracy', accuracy_with_threshold, fscore])
+                                                        metrics=['accuracy', accuracy_with_threshold])
 
 checkpoint = ModelCheckpoint('saved_models/model_{epoch:0003d}--{loss:.2f}--{val_loss:.2f}.hdf5',
               save_best_only=True,
               save_weights_only=False)
-
-# treina e valida o modelo - sem data augmentation
-#model.fit(X_train[train_idx], to_categorical(Y_train[train_idx]),
-#					batch_size=128,
-#					shuffle=True,
-#					epochs=250,
-#					validation_data=(X_train[val_idx], to_categorical(Y_train[val_idx])),
-#					callbacks=[EarlyStopping(min_delta=0.001, patience=10), CSVLogger('training_fold_' + str(fold) + '.log', separator=',', append=False), checkpoint])
 
 # treina e valida o modelo - com data augmentation
 train_generator = datagen_aug.flow_from_directory(path+train_dir, target_size=(224,224),
@@ -134,12 +106,10 @@ val_generator = datagen_no_aug.flow_from_directory(path+val_dir, target_size=(22
 
 model.fit_generator(
 									train_generator,workers=1,
-									class_weight={0:1, 1:1}, # balance
-									steps_per_epoch=199, # (partition size / batch size)+1
+									class_weight={0:3, 1:1}, # balance
+									steps_per_epoch=192, # (partition size / batch size)+1
 									epochs=500,
 									shuffle=True,
                   max_queue_size=20,
 									validation_data=val_generator,
-									callbacks=[EarlyStopping(min_delta=0.001, patience=20), CSVLogger('training.log', separator=',', append=False), checkpoint])
-
-#print model.summary()
+									callbacks=[EarlyStopping(patience=20), CSVLogger('training.log', separator=',', append=False), checkpoint])

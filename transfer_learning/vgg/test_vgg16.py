@@ -33,13 +33,13 @@ def accuracy_with_threshold(y_true, y_pred):
 	y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
 	return K.mean(K.equal(y_true, y_pred))
 
-def f_score(y_true, y_pred):
-  #y_true = tf.cast(y_true, "int32")
-  y_pred = K.cast(K.greater(y_pred, threshold), K.floatx())
+def fscore(y_true, y_pred):
+  y_true = tf.cast(y_true, "float32")
+  y_pred = K.cast(K.greater(y_pred, threshold), "float32")
   y_correct = y_true * y_pred
-  sum_true = tf.reduce_sum(y_true, axis=1)
-  sum_pred = tf.reduce_sum(y_pred, axis=1)
-  sum_correct = tf.reduce_sum(y_correct, axis=1)
+  sum_true = tf.reduce_sum(y_true)
+  sum_pred = tf.reduce_sum(y_pred)
+  sum_correct = tf.reduce_sum(y_correct)
   precision = sum_correct / sum_pred
   recall = sum_correct / sum_true
   f_score = 2 * precision * recall / (precision + recall)
@@ -53,6 +53,7 @@ test_dir = "test/"
 
 # data generator sem o augmentation - para a validação
 datagen_no_aug = ImageDataGenerator(rescale=1./255)
+#datagen_no_aug = ImageDataGenerator()
 
 # Create the model
 # Create the model
@@ -71,7 +72,7 @@ for layer in pt_model.layers:
 	layer.trainable = False
 
 # new fully connected layer
-x = pt_model.layers[-2].output
+x = pt_model.layers[-3].output
 #x = Flatten()(x)
 fc_1 = Dense(128, activation='selu')(x)
 #fc_1 = Dropout(0.5)(fc_1)
@@ -90,7 +91,7 @@ model.load_weights(sys.argv[1])
 opt = Adam(lr=0.001, decay=5e-6)
 model.compile(loss='binary_crossentropy',
 							optimizer=opt,
-							metrics=['accuracy', accuracy_with_threshold, fscore])
+							metrics=['accuracy', accuracy_with_threshold])
 
 test_generator = datagen_no_aug.flow_from_directory(path+test_dir, target_size=(224,224),
 																									batch_size=1,
